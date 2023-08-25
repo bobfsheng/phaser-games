@@ -1,37 +1,38 @@
 import Phaser from 'phaser';
+import PlayScene from './scenes/PlayScene';
+import MenuScene from './scenes/MenuScene';
+import PreloadScene from './scenes/preloadScene';
+import ScoreScene from './scenes/ScoreScene';
+
+const WIDTH = 800;
+const HEIGHT = 600;
+const BIRD_POSITION = {x: WIDTH / 10, y: HEIGHT / 2 };
+
+const SHARED_CONFIG = {
+  width: WIDTH,
+  height: HEIGHT,
+  startPosition: BIRD_POSITION
+};
+
+const Scenes = [PreloadScene, MenuScene, PlayScene, ScoreScene];
+const initScenes = ()=>Scenes.map(scene => new scene(SHARED_CONFIG))
 
 const config = {
   //WebGL (Web Graphics library) JS Api for rendering 2D/3D graphics
-  width: 800,
-  height: 600,
+  type: Phaser.AUTO,
+  ...SHARED_CONFIG,
   physics: {
     // Arcade physics plugin, mangages physics simulation
-    default: 'arcade'
+    default: 'arcade',
+    arcade: {
+      // gravity: {y: 200},
+      debug: true,
+    }
   },
-  scene: {
-    preload,
-    create,
-  }
+  // scene: [new PreloadScene(SHARED_CONFIG), new MenuScene(SHARED_CONFIG), new PlayScene(SHARED_CONFIG)]
+  scene: initScenes()
 };
 
-// Loading assets, e.g., images, music, animations
-function preload() {
-  // this context  - scene
-  // contains functions and properties we can use
-
-  // debugger
-  this.load.image('sky', 'assets/sky.png');
-  this.load.image('bird', 'assets/bird.png');
-}
-
-let bird = null;
-
-function create() {
-  // this.add.image(config.width/2, config.height/2, 'sky');
-  this.add.image(0, 0, 'sky').setOrigin(0);
-  bird = this.physics.add.sprite(config.width / 10, config.height / 2, 'bird').setOrigin(0);
-  bird.body.gravity.y = 2000;
-  // debugger
-}
-
 new Phaser.Game(config);
+
+
