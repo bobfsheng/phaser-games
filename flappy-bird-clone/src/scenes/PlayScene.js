@@ -9,17 +9,32 @@ class PlayScene extends BaseScene {
         this.pipes = null;
 
         this.pipeHorizontalDistance = 0;
-        this.pipeVerticalDistanceRange = [200, 350];
-        this.pipeHorizontalDistanceRanage = [450, 600];
         this.flapVelocity = 300;
-
         this.pipeVelocity = 150;
+
         this.score = 0;
         this.scoreText = '';
 
+        this.isPaused = false;
+        this.currentDifficulty = 'easy';
+        this.difficulties = {
+            'easy': {
+                pipeHorizontalDistanceRange: [300, 350],
+                pipeVerticalDistanceRange: [450, 600]
+            },
+            'normal': {
+                pipeHorizontalDistanceRange: [280, 330],
+                pipeVerticalDistanceRange: [350, 500]
+            },
+            'hard': {
+                pipeHorizontalDistanceRange: [250, 310],
+                pipeVerticalDistanceRange: [250, 400]
+            },
+        };
     }
 
     create() {
+        this.currentDifficulty = 'easy';
         super.create();
         this.createBird();
         this.createPipes();
@@ -27,6 +42,7 @@ class PlayScene extends BaseScene {
         this.createScore();
         this.createPause();
         this.handleInputs();
+        this.listenToEvents();
     }
 
     update() {
@@ -68,11 +84,14 @@ class PlayScene extends BaseScene {
     }
 
     createPause() {
+        this.isPaused = false;
         const pauseButton = this.add.image(this.config.width - 10, this.config.height - 10, 'pause')
                                 .setScale(3).setOrigin(1).setInteractive();
         pauseButton.on('pointerdown', ()=>{
+            this.isPaused = true;
             this.physics.pause();
             this.scene.pause();
+            this.scene.launch('PauseScene');
         })
     }
 
@@ -89,6 +108,31 @@ class PlayScene extends BaseScene {
         }, this);
     }
     
+    listenToEvents() {
+        if (this.pauseEvent) { return; }
+        this.pauseEvent = this.events.on('resume', () => {
+            this.initialTime = 3;
+            this.countDownText = this.add.text(...this.screenCenter, 'Resume flying in ' + this.initialTime, this.fontOptions).setOrigin(0.5);
+            this.timeEvent = this.time.addEvent({
+                delay: 1000, 
+                callback: this.countDown, 
+                callbackScope: this, 
+                loop: true
+            });
+        });
+    }
+
+    countDown() {
+        this.initialTime--;
+        this.countDownText.setText('Resume flying in ' + this.initialTime);
+        if (this.initialTime <= 0) {
+            this.isPaused = false;
+            this.countDownText.setText('');
+            this.physics.resume();
+            this.timeEvent.remove();
+        }
+    }
+
     checkGameStatus() {
         if (this.bird.getBounds().bottom >= this.config.height || this.bird.y <= 0) {
             this.bird.y = (this.bird.y > 0) ? this.config.height - this.bird.height : 0;
@@ -97,6 +141,7 @@ class PlayScene extends BaseScene {
     }
 
     flap() {
+        if (this.isPaused) { return ; }
         this.bird.body.velocity.y = - this.flapVelocity;
     }
       
@@ -109,14 +154,15 @@ class PlayScene extends BaseScene {
      }
       
     placePipe(uPipe, lPipe) {
+        const difficulty = this.difficulties[this.currentDifficulty];
         const rightMostX = this.getRightMostPipe();
-        const pipeVerticalDistance = Phaser.Math.Between(...this.pipeVerticalDistanceRange);
+        const pipeVerticalDistance = Phaser.Math.Between(...difficulty.pipeVerticalDistanceRange);
         const pipeVerticalPosition = Phaser.Math.Between(0 + 20, this.config.height - 20 - pipeVerticalDistance);
-        const pipeHorizontalDistance = Phaser.Math.Between(...this.pipeHorizontalDistanceRanage);
+        const pipeHorizontalDistance = Phaser.Math.Between(...difficulty.pipeHorizontalDistanceRange);
 
         uPipe.x = rightMostX + pipeHorizontalDistance;
         uPipe.y = pipeVerticalPosition;
-        lPipe.x =  uPipe.x;
+        lPipe.x = uPipe.x;
         lPipe.y = uPipe.y + pipeVerticalDistance;  
         uPipe.body.velocity.x = - this.pipeVelocity;
         lPipe.body.velocity.x = - this.pipeVelocity;    
@@ -131,9 +177,23 @@ class PlayScene extends BaseScene {
                 this.placePipe(...tempPipes);
                 this.increaseScore();
                 this.saveBestScore();
+                this.increaseDifficulty();
             }
           }
         });
+    }
+
+    increaseDifficulty() {
+        if (this.score <= 10) {
+            this.currentDifficulty = 'easy';
+        }
+        if (this.score <= 20) {
+            this.currentDifficulty = 'normal';
+        }
+        if (this.score <= 30) {
+            this.currentDifficulty = 'hard';
+        }
+
     }
 
     increaseScore() {
