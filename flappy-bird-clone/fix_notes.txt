@@ -56,3 +56,15 @@ new CopyPlugin({
   ],
 })
 
+--------------------------------------------------------------------------------------
+------------------------------- build from scratch ------------------------------------
+--------------------------------------------------------------------------------------
+
+https://snowbillr.github.io/blog//2018-04-09-a-modern-web-development-setup-for-phaser-3/
+
+https://tnodes.medium.com/integrating-react-and-phaser-3-tutorial-eb96717d4a9d
+
+https://stackoverflow.com/questions/55667188/how-to-integrate-phaser-into-react
+
+https://www.html5gamedevs.com/topic/10742-use-the-phaser-in-a-specific-canvas-element/
+
