@@ -1,9 +1,11 @@
 import axios from 'axios'
 
+const service="http://gsheng.does-it.net:8081/flappy-bird/";
+
 export class ScoreRepo {
     // using axios
     static getTopRecords(count, onResp) {
-        const url = "http://192.168.1.211:8080/flappy-bird/topN?n=" + count;
+        const url = service + "topN?n=" + count;
         axios.get(url).then(resp => {
             console.log(resp.data);
             onResp(resp.data);
@@ -11,7 +13,7 @@ export class ScoreRepo {
     }
 
     static getPlayerRecord(name, onResp){
-        const url = "http://192.168.1.211:8080/flappy-bird/player?name=" + name;
+        const url = service + "player?name=" + name;
         axios.get(url).then(resp => {
             console.log(resp.data);
             onResp(resp.data);
@@ -19,7 +21,7 @@ export class ScoreRepo {
     }
 
     static savePlayerRecord(playerRecord, onResp) {
-        const url = "http://192.168.1.211:8080/flappy-bird/update";
+        const url = service + "update";
         axios.post(url, playerRecord)
         .then((resp) => {
             console.log(resp.data);
@@ -30,7 +32,7 @@ export class ScoreRepo {
     // using George's Way
     // static request(suffix, type, data = undefined, onResp = undefined){
     //     const call = new XMLHttpRequest();
-    //     call.open(type, "http://192.168.1.211:8080/flappy-bird/" + suffix);
+    //     call.open(type, service + "" + suffix);
     //     call.setRequestHeader('Content-Type', 'application/json');
     //     debugger
     //     if(data !== undefined){
