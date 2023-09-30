@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const service="http://gsheng.does-it.net:8081/flappy-bird/";
+// const service="http://gsheng.does-it.net:8081/flappy-bird/";
+const service="http://localhost:8081/flappy-bird/";
 
 export class ScoreRepo {
     // using axios
@@ -15,6 +16,7 @@ export class ScoreRepo {
     static getPlayerRecord(name, onResp){
         const url = service + "player?name=" + name;
         axios.get(url).then(resp => {
+            console.log(name + " Record:");
             console.log(resp.data);
             onResp(resp.data);
         });
