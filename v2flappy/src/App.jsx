@@ -12,6 +12,7 @@ let game = new Phaser.Game(config);
 function App() {
     const[scoreModalIsOpen, setScoreModalIsOpen] = useState(false);
     const[loginModalIsOpen, setLoginModalIsOpen] = useState(false);
+    const[registerModalIsOpen, setRegisterModalIsOpen] = useState(false);
     const[playerName, setPlayerName] = useState();
     const[topRecords, setTopRecords] = useState([]);
     const[playerRecord, setPlayerRecord] = useState({});
@@ -31,8 +32,8 @@ function App() {
 
     game.config = {...game.config, scoreHandler: handleScore};
 
-    function getTopRecords(topCount) {
-        ScoreRepo.getTopRecords(topCount, (recordsFromDb) => {
+    function getTopRecords(topN) {
+        ScoreRepo.getTopRecords(topN, (recordsFromDb) => {
             setTopRecords(recordsFromDb);            
         });
     }
@@ -53,23 +54,31 @@ function App() {
         getPlayerRecord(playerName);        
     }, []);
 
+    // top player modal
     function openScoreModal() {
         setScoreModalIsOpen(true);
         getTopRecords(topCount);
     }
-
     function closeScoreModal() {        
         setScoreModalIsOpen(false);
     }
-    
+    function onIncreaseCount() {
+        setTopCount(topCount + 1);
+    }
+    function onDecreaseCount() {
+        setTopCount(topCount - 1);
+    }
+    function applyCount() {
+        getTopRecords(topCount);
+    }
+
+    // login modal
     function openLoginModal() {
         setLoginModalIsOpen(true);
     }
-
     function closeLoginModal() {
         setLoginModalIsOpen(false);
     }
-
     function logout() {
         const resp = confirm("Are you sure to logout " + playerName + "?");
         if (resp) {
@@ -77,7 +86,6 @@ function App() {
             // setPlayerRecord(null);
         }        
     }
-
     function applyLoginModal(event) {
         event.preventDefault();
         setLoginModalIsOpen(false);
@@ -86,12 +94,7 @@ function App() {
             setPlayerName(loginUser);
             getPlayerRecord(loginUser);            
         }
-        // const topRecordCount = event.target.topCount.value;
-        // if (topRecordCount !== topCount) {
-        //     setTopCount(topRecordCount);            
-        // }
     }
-
     function formatTmstmp(tmstmp) {
         if (tmstmp) {
             const dotIndex = tmstmp.indexOf(".");
@@ -100,17 +103,41 @@ function App() {
         return null;
     }
 
-    function onIncreaseCount() {
-        setTopCount(topCount + 1);
+    // register
+    function openRegisterodal() {
+        setRegisterModalIsOpen(true);
     }
+    function closeRegisterModal() {
+        setRegisterModalIsOpen(false);
+    }
+    function applyRegisterModal(event) {
+        event.preventDefault();
+        const email = event.target.email.value;
+        const name = event.target.name.value;
+        const password = event.target.password.value;
+        const rePassword = event.target.rePassword.value;
+        if (password === rePassword) {
+            ScoreRepo.register(email, name, password, (playerRecord) => {
+                if (playerRecord) {
+                    setPlayerName(playerRecord.name);
+                    setPlayerRecord(playerRecord);
+                    setRegisterModalIsOpen(false);
+                }
+                else {
+                    alert("Failed to register [" + email + "] as [" + name + "]!");
+                }
+            });
+        }
+        else {
+            alert("Passwords not match!");
+        }
 
-    function onDecreaseCount() {
-        setTopCount(topCount - 1);
     }
 
     return (
         <div id="App">
             <button onClick={openScoreModal}>Top {topCount} Players</button>&nbsp;&nbsp;&nbsp;
+            <button onClick={openRegisterodal}>Register to Create Free Acount</button>&nbsp;&nbsp;&nbsp;
             <button onClick={playerName ? logout : openLoginModal}>
                 {playerName ? "Logout" : "Login to Enter the Competition"}
             </button>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -127,12 +154,28 @@ function App() {
                 <h1>Top {topCount} Player Records</h1>
                 <label># of Top Player to Show:&nbsp;</label>
                 <input id="topCount"  readOnly type='text' value={topCount} />
-                <button onClick={onIncreaseCount}>increase</button>
-                <button onClick={onDecreaseCount}>decrease</button>
+                <button onClick={onIncreaseCount}>Inc</button>
+                <button onClick={onDecreaseCount}>Dec</button>
+                <button onClick={applyCount}>Apply</button>
                 <ol>{ topRecords.map(record => {
                     return <div key={record.name}><li><b>{record.name}</b> -------------- {record.bestScore}</li></div>
                 })}</ol> <br/>
                 <button onClick={closeScoreModal}>Close</button>              
+            </Modal>
+            <Modal isOpen={registerModalIsOpen} contentLabel="Register Modal">
+                <center><h2>Registration</h2>
+                <form onSubmit={applyRegisterModal}>
+                    <label>Email&nbsp;</label>
+                    <input id="email" type='text' /><br/><br />
+                    <label>Your Name&nbsp;</label>
+                    <input id="name" type='text' /><br/><br />
+                    <label>Password&nbsp;</label>
+                    <input id="password" type='password' /><br/><br />                    
+                    <label>ReType Password&nbsp;</label>
+                    <input id="rePassword" type='password' /><br/><br />                    
+                    <button>OK</button>                
+                    <button onClick={closeRegisterModal}>Cancel</button>                
+                </form></center>
             </Modal>
             <Modal isOpen={loginModalIsOpen} contentLabel="Login Modal">
                 <center><h2>Login to Enter Competition </h2>

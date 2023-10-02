@@ -4,7 +4,19 @@ import axios from 'axios'
 const service="http://localhost:8081/flappy-bird/";
 
 export class ScoreRepo {
+    static standardCall (url, onResp) {
+        console.log(url);
+        axios.get(url).then(resp => {
+            console.log(resp.data);
+            onResp(resp.data);
+        });
+    }
     // using axios
+    static register(email, name, password, onResp) {
+        const url = service + "register?email=" + email + 
+            "&name=" + name + "&password=" + password;
+        ScoreRepo.standardCall(url, onResp);
+    }
     static getTopRecords(count, onResp) {
         const url = service + "topN?n=" + count;
         axios.get(url).then(resp => {
@@ -12,7 +24,6 @@ export class ScoreRepo {
             onResp(resp.data);
         });
     }
-
     static getPlayerRecord(name, onResp){
         const url = service + "player?name=" + name;
         axios.get(url).then(resp => {
@@ -21,7 +32,6 @@ export class ScoreRepo {
             onResp(resp.data);
         });
     }
-
     static savePlayerRecord(playerRecord, onResp) {
         const url = service + "update";
         axios.post(url, playerRecord)
